@@ -1,0 +1,127 @@
+---
+title: "r proficiency test"
+output: html_notebook
+---
+
+#before you start, please save this file with the same name and your name concatenated at the end. See full instructions bellow. 
+
+
+###run the following chunk order to upload the datafiles - see details below
+```{r preparing the dataset, include=FALSE,echo=FALSE}
+rm(list = ls())
+
+library(Rmisc);library(tidyverse); library(lme4); library(lmerTest); 
+library(jsonlite)
+path = "data/"
+d <-
+    list.files(path,pattern="*.json", full.names = T) %>% #get a list of all  files
+    map_df(~fromJSON(file.path(.),
+              simplifyVector = TRUE, 
+              flatten = T)) #add these files to d
+
+d=as.data.frame(d)
+
+d = d%>%
+  filter(name =="valence" | name == "rating" | name == "emotionType" )%>%
+  select(rt,trial_index,participant_id,stimulus,button_pressed,name,response)%>%
+  mutate(photo = ifelse(name=="rating", lag(stimulus), stimulus),
+         value = ifelse(is.na(button_pressed),response,button_pressed))%>%
+  separate(photo,into = c("folder", "fileEnding"), sep = "\\/")%>%
+  separate(fileEnding, into=c("photo","fileEnding"), sep = "\\.")%>%
+  select(-stimulus,-button_pressed,-response,-folder,-fileEnding,-rt,-trial_index)%>%
+  group_by(participant_id)%>%
+  mutate(trial = rep(1:30,each=3 ))%>%
+  ungroup()%>%
+  spread(name,value)%>%
+  arrange(participant_id,trial)
+  
+  
+  
+d$photo = as.integer(d$photo)
+d$rating=as.integer(d$rating)
+
+d$valence=factor(d$valence,label= c("positive", "negative","neutral"))
+
+
+
+
+#combind moderator file
+m = read_csv('moderators.csv') # we are reading the moderators file (which was collected via qualtrics)
+m = m[,c(18:49)] #cleaning
+
+
+d =m%>% select(participant_id, 
+           poli, 
+           age, 
+           gender, 
+           black, 
+           latin, 
+           white, 
+           asian, 
+           other)%>%
+  left_join(d,.) #combining the two datasets based on participants' id
+
+rm(m)
+
+```
+
+The goal of this task was to pilot participants' responses to a series of pictures. in response to each pictures particiapnts were asked to answer a few questions. the database d contains that following columns:
+
+1. participant_id
+2. photo - an emotional photo that participants saw.
+3. trial - trial number.
+4. emotionType - participants chose from a list of emotions :  "Happiness", "Excitment", "Calmness", "Sadness","Anger","Guilt", "Fear","Hatred"
+5. participants ratings of intensity in response to the picture.
+6. valence - whehther participants rated the pictures as positive negative or neutral.
+7. poli - participants' political affiliation from 1- extreme liberals to 7 - extreme conservatives.
+8. age 
+9. gender - 1 woman, 2 men, 3 other. 
+10-14: black, latin, white, asian, other - participatns were asked to mark their race. 
+
+
+#descriptives - answer the following questions with code
+```{r}
+
+# how many participants particiapted in the study.
+
+
+#how many photoes were there in the study, how many were observed by each participants. 
+
+
+#create a historgram of participants' political affiliation
+
+
+#create a table with participants' race. 
+
+
+```
+
+
+# in the chunk below - for each photo: what was the precent of positive and negative emotions. Provide both a table and a graph.
+```{r photoes data}
+
+
+```
+
+
+#provide frequency graph for the different types of emotions: "photo", "Happiness", "Excitment", "Calmness", "Sadness","Anger","Guilt", "Fear","Hatred"
+
+```{r distinct emotions}
+
+
+```
+
+
+#crate a graph for each photo and its average rating (with confidence intervals)
+```{r}
+
+
+```
+
+
+#is rating predicted by emotion? Use lmer for the analysis if possibile
+
+```{r}
+
+```
+
