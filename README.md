@@ -1,4 +1,4 @@
-# proficiency tests
+# Proficiency Tests
 
 ## 1. Please go to the apropriate folder.
 ## 2. Download/clone the repository
